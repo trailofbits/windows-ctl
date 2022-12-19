@@ -1,0 +1,10 @@
+[package]
+name = "windows-ctl"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+cab = { version = "0.4.1", optional = true }
+der = { version = "0.5", features = ["std"] }
+thiserror = "1.0"
+pkcs7 = "0.3"
