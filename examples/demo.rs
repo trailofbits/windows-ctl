@@ -16,5 +16,7 @@ fn main() {
         panic!("unexpected input (expected .cab or .stl): {}", path);
     };
 
-    print!("{:?}", ctl);
+    for entry in ctl.cert_list.iter() {
+        println!("{:?}", entry.cert_id());
+    }
 }

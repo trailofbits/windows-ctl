@@ -5,6 +5,7 @@ edition = "2021"
 
 [dependencies]
 cab = { version = "0.4.1", optional = true }
-der = { version = "0.5", features = ["std"] }
+der = { path = "../formats/der", features = ["std"] }
+hex = "0.4"
 thiserror = "1.0"
-pkcs7 = "0.3"
+pkcs7 = { path = "../formats/pkcs7" }
