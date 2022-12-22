@@ -10,7 +10,7 @@
 
 use std::io::{Read, Seek};
 
-use der::asn1::{Any, ObjectIdentifier, OctetString};
+use der::asn1::{Any, ObjectIdentifier, OctetString, Uint};
 use der::{Decode, Enumerated, Sequence};
 use pkcs7::{ContentInfo, ContentType};
 use spki::AlgorithmIdentifier;
@@ -147,10 +147,8 @@ pub struct CertificateTrustList {
     /// See [MS-CAESO](https://yossarian.net/junk/hard_to_find/ms-caeso-v20090709.pdf) page 48.
     pub list_identifier: Option<ListIdentifier>,
 
-    // TODO: Better type here? UintRef<'_> doesn't fit, since it's borrowed
-    // in an owning struct.
     /// Some kind of sequence number; purpose unknown.
-    pub sequence_number: Option<Any>,
+    pub sequence_number: Option<Uint>,
 
     // NOTE: MS doesn't bother to document `ChoiceOfTime`, but experimentally
     // it's the same thing as an X.509 `Time` (See <https://www.rfc-editor.org/rfc/rfc5280#section-4.1>)
@@ -166,7 +164,7 @@ pub struct CertificateTrustList {
     /// The list of trusted subjects in this CTL.
     pub trusted_subjects: Option<TrustedSubjects>,
 
-    // TODO: Similar to `sequence_number`: this should really be `x509_cert::ext::Extensions`
+    // TODO: this should really be `x509_cert::ext::Extensions`
     // but that's a borrowed type and this struct is owning.
     /// Any X.509 style extensions.
     #[asn1(context_specific = "0", optional = "true", tag_mode = "EXPLICIT")]
