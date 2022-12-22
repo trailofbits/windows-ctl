@@ -1,6 +1,6 @@
 use std::env;
 
-use windows_ctl::Ctl;
+use windows_ctl::CertificateTrustList;
 
 fn main() {
     // Use: demo <file>
@@ -9,14 +9,14 @@ fn main() {
     let file = std::fs::File::open(&path).expect("error: couldn't open file");
 
     let ctl = if path.ends_with(".stl") || path.ends_with(".der") {
-        Ctl::from_der(file).expect("failed to load CTL")
+        CertificateTrustList::from_der(file).expect("failed to load CTL")
     } else if path.ends_with(".cab") {
-        Ctl::from_cab(file).expect("failed to load CTL")
+        CertificateTrustList::from_cab(file).expect("failed to load CTL")
     } else {
         panic!("unexpected input (expected .cab or .stl): {}", path);
     };
 
-    for entry in ctl.cert_list.iter() {
+    for entry in ctl.trusted_subjects.iter().flatten() {
         println!("{:?}", entry.cert_id());
     }
 }

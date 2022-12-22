@@ -1,10 +1,13 @@
 use std::io::{Read, Seek};
 
-use der::asn1::{Any, ObjectIdentifier, OctetString, SetOfVec};
-use der::Decode;
-use der::Sequence;
+use der::asn1::{Any, ObjectIdentifier, OctetString};
+use der::{Decode, Enumerated, Sequence};
 use pkcs7::{ContentInfo, ContentType};
+use spki::AlgorithmIdentifier;
 use thiserror::Error;
+use x509_cert::attr::Attributes;
+use x509_cert::ext::pkix::ExtendedKeyUsage;
+use x509_cert::time::Time;
 
 pub const MS_CERT_TRUST_LIST_OID: ObjectIdentifier =
     ObjectIdentifier::new_unwrap("1.3.6.1.4.1.311.10.1");
@@ -30,98 +33,89 @@ pub enum CtlError {
     MissingSignedDataContent,
 }
 
-// NOTE(ww): Each certificate entry in the CTL looks something like this:
-//
-// ```
-// SEQUENCE (2 elem)
-//   OCTET STRING (20 byte)
-//   SET (7 elem)
-//     SEQUENCE (2 elem)
-//       OBJECT IDENTIFIER 1.3.6.1.4.1.311.10.11.104
-//       SET (1 elem)
-//         OCTET STRING (8 byte)
-//     SEQUENCE (2 elem)
-//       OBJECT IDENTIFIER 1.3.6.1.4.1.311.10.11.126
-//       SET (1 elem)
-//         OCTET STRING (8 byte)
-//     SEQUENCE (2 elem)
-//       OBJECT IDENTIFIER 1.3.6.1.4.1.311.10.11.105
-//       SET (1 elem)
-//         OCTET STRING (14 byte)
-//           SEQUENCE (1 elem)
-//             OBJECT IDENTIFIER 1.3.6.1.4.1.311.60.3.2
-//     SEQUENCE (2 elem)
-//       OBJECT IDENTIFIER 1.3.6.1.4.1.311.10.11.29 certSubjectNameMd5HashPropId (Microsoft)
-//       SET (1 elem)
-//         OCTET STRING (16 byte)
-//     SEQUENCE (2 elem)
-//       OBJECT IDENTIFIER 1.3.6.1.4.1.311.10.11.20 certKeyIdentifierPropId (Microsoft)
-//       SET (1 elem)
-//         OCTET STRING (20 byte)
-//     SEQUENCE (2 elem)
-//       OBJECT IDENTIFIER 1.3.6.1.4.1.311.10.11.98
-//       SET (1 elem)
-//         OCTET STRING (32 byte)
-//     SEQUENCE (2 elem)
-//       OBJECT IDENTIFIER 1.3.6.1.4.1.311.10.11.11
-//       SET (1 elem)
-//         OCTET STRING (74 byte)
-// ```
-//
-// ...where that first `OCTET STRING` is an identifier for the corresponding
-// certificate (it's probably a SHA-1 or similar digest).
+type SubjectIdentifier = OctetString;
+
 /// Represents a single entry in the certificate trust list.
+///
+/// From MS-CAESO:
+///
+/// ```asn1
+/// TrustedSubject ::= SEQUENCE {
+///   subjectIdentifier SubjectIdentifier,
+///   subjectAttributes Attributes OPTIONAL
+/// }
+/// ```
 #[derive(Clone, Debug, Eq, PartialEq, Sequence)]
-pub struct CertEntry {
-    cert_id: OctetString,
-    unknown: SetOfVec<Any>,
+pub struct TrustedSubject {
+    identifier: SubjectIdentifier,
+    attributes: Option<Attributes>,
 }
 
-impl CertEntry {
+impl TrustedSubject {
     /// Returns the certificate's ID, as a hex-encoded string.
     pub fn cert_id(&self) -> String {
-        hex::encode(self.cert_id.as_bytes())
+        hex::encode(self.identifier.as_bytes())
     }
 }
 
-// NOTE(ww): The certTrustList SEQUENCE looks something like this:
-//
-// ```
-// SEQUENCE (5 elem)
-//   SEQUENCE (1 elem)
-//     OBJECT IDENTIFIER 1.3.6.1.4.1.311.10.3.9 rootListSigner
-//   INTEGER (69 bit) 369068011719060212218
-//   UTCTime 2022-11-15 22:21:26 UTC
-//   SEQUENCE (2 elem)
-//     OBJECT IDENTIFIER 1.3.14.3.2.26 sha1
-//     NULL
-//   SEQUENCE (447 elem)
-// ```
-//
-// ...where that last inner `SEQUENCE` actually contains the list of trusted certificates.
-// We don't really care about the other fields for now, since we don't know how
-// to interpret them.
-#[derive(Clone, Debug, Eq, PartialEq, Sequence)]
-pub struct Ctl {
-    // SEQUENCE
-    //   OBJECT IDENTIFIER
-    unknown0: Any,
-
-    // INTEGER
-    unknown1: Any,
-
-    /// UTCTime
-    unknown2: Any,
-
-    // SEQUENCE
-    //   OBJECT IDENTIFIER
-    //   NULL
-    unknown3: Any,
-
-    pub cert_list: Vec<CertEntry>,
+/// Version identifier for CertificateTrustList.
+#[derive(Clone, Debug, Copy, PartialEq, Eq, Enumerated)]
+#[asn1(type = "INTEGER")]
+#[repr(u8)]
+pub enum CtlVersion {
+    /// CtlVersion 1 (default)
+    V1 = 0,
 }
 
-impl Ctl {
+impl Default for CtlVersion {
+    fn default() -> Self {
+        CtlVersion::V1
+    }
+}
+
+type SubjectUsage = ExtendedKeyUsage;
+
+/// The certificate trust list.
+///
+/// From [MS-CAESO], pages 47-48:
+///
+/// ```asn1
+/// CertificateTrustList ::= SEQUENCE {
+///   version CTLVersion DEFAULT v1,
+///   subjectUsage SubjectUsage,
+///   listIdentifier ListIdentifier OPTIONAL,
+///   sequenceNumber HUGEINTEGER OPTIONAL,
+///   ctlThisUpdate ChoiceOfTime,
+///   ctlNextUpdate ChoiceOfTime OPTIONAL,
+///   subjectAlgorithm AlgorithmIdentifier,
+///   trustedSubjects TrustedSubjects OPTIONAL,
+///   ctlExtensions [0] EXPLICIT Extensions OPTIONAL
+/// }
+/// ```
+///
+/// [MS-CAESO]: https://download.microsoft.com/download/C/8/8/C8862966-5948-444D-87BD-07B976ADA28C/%5BMS-CAESO%5D.pdf
+#[derive(Clone, Debug, Eq, PartialEq, Sequence)]
+pub struct CertificateTrustList {
+    #[asn1(default = "Default::default")]
+    pub version: CtlVersion,
+    pub subject_usage: SubjectUsage,
+    pub list_identifier: Option<OctetString>,
+    // TODO: Better type here? UintRef<'_> doesn't fit, since it's borrowed
+    // in an owning struct.
+    pub sequence_number: Option<Any>,
+    // NOTE: MS doesn't bother to document `ChoiceOfTime`, but experimentally
+    // it's the same thing as an X.509 `Time` (See <https://www.rfc-editor.org/rfc/rfc5280#section-4.1>)
+    pub this_update: Time,
+    pub next_update: Option<Time>,
+    pub subject_algorithm: AlgorithmIdentifier<Any>,
+    pub trusted_subjects: Option<Vec<TrustedSubject>>,
+    // TODO: Similar to `sequence_number`: this should really be `x509_cert::ext::Extensions`
+    // but that's a borrowed type and this struct is owning.
+    #[asn1(context_specific = "0", optional = "true", tag_mode = "EXPLICIT")]
+    pub ctl_extensions: Option<Any>,
+}
+
+impl CertificateTrustList {
     /// Load a `Ctl` from the given source, which is expected to be a
     /// [Cabinet Format](https://learn.microsoft.com/en-us/windows/win32/msi/cabinet-files)
     /// encoded stream.
