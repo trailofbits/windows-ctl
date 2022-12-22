@@ -23,6 +23,10 @@ use x509_cert::time::Time;
 pub const MS_CERT_TRUST_LIST_OID: ObjectIdentifier =
     ObjectIdentifier::new_unwrap("1.3.6.1.4.1.311.10.1");
 
+/// The OID for an attribute containing `ExtendedKeyUsage` identifiers.
+pub const MS_CERT_PROP_ID_METAEKUS_OID: ObjectIdentifier =
+    ObjectIdentifier::new_unwrap("1.3.6.1.4.1.311.10.11.9");
+
 /// Possible errors while parsing a certificate trust list.
 #[derive(Debug, Error)]
 pub enum CtlError {
@@ -77,6 +81,18 @@ impl TrustedSubject {
     /// Returns the certificate's ID, as a hex-encoded string.
     pub fn cert_id(&self) -> String {
         hex::encode(self.identifier.as_bytes())
+    }
+
+    /// Foo.
+    pub fn extended_key_usages(&self) -> impl Iterator<Item = &ObjectIdentifier> + '_ {
+        Some(MS_CERT_TRUST_LIST_OID).iter()
+
+        // *self.attributes
+        //     .iter()
+        //     .flatten()
+        //     .filter(|attr| attr.oid == MS_CERT_PROP_ID_METAEKUS_OID)
+        //     .map(|attr| attr.values.iter())
+        //     .flatten()
     }
 }
 
