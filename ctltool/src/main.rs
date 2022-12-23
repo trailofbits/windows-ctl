@@ -85,7 +85,7 @@ fn dump(args: DumpArgs) -> Result<()> {
 }
 
 fn fetch(args: FetchArgs) -> Result<()> {
-    let ctl = get_ctl(args.input)?;
+    let _ctl = get_ctl(args.input)?;
 
     unimplemented!();
 }
