@@ -10,8 +10,9 @@
 
 use std::io::{Read, Seek};
 
-use der::asn1::{Any, ObjectIdentifier, OctetString, Uint};
+use der::asn1::{Any, ObjectIdentifier, OctetString, OctetStringRef, Uint};
 use der::{Decode, Enumerated, Sequence};
+use itertools::Itertools;
 use pkcs7::{ContentInfo, ContentType};
 use spki::AlgorithmIdentifier;
 use thiserror::Error;
@@ -60,6 +61,15 @@ pub enum CtlError {
 /// ```
 type SubjectIdentifier = OctetString;
 
+/// Completely undocumented by MS.
+///
+/// As best I can tell this is:
+///
+/// ```asn1
+/// MetaEku ::= SEQUENCE OF OBJECT IDENTIFIER
+/// ```
+type MetaEku = Vec<ObjectIdentifier>;
+
 /// Represents a single entry in the certificate trust list.
 ///
 /// From MS-CAESO:
@@ -83,16 +93,30 @@ impl TrustedSubject {
         hex::encode(self.identifier.as_bytes())
     }
 
-    /// Foo.
-    pub fn extended_key_usages(&self) -> impl Iterator<Item = &ObjectIdentifier> + '_ {
-        Some(MS_CERT_TRUST_LIST_OID).iter()
-
-        // *self.attributes
-        //     .iter()
-        //     .flatten()
-        //     .filter(|attr| attr.oid == MS_CERT_PROP_ID_METAEKUS_OID)
-        //     .map(|attr| attr.values.iter())
-        //     .flatten()
+    /// Returns an iterator over all Extended Key Usages (EKUs) listed
+    /// in this `TrustedSubject`.
+    pub fn extended_key_usages(
+        &self,
+    ) -> impl Iterator<Item = Result<ObjectIdentifier, der::Error>> + '_ {
+        // Option<Attributes>
+        //   -> Iterator<Attribute>
+        //   -> attributes that list EKUs
+        //   -> all values for those attributes
+        //   -> each value is an OCTET STRING
+        //   -> ...which in turn contains DER for a MetaEKU...
+        //   -> ...which in turn is a list of OIDs
+        self.attributes
+            .iter()
+            .flat_map(|attrs| attrs.iter())
+            .filter(|attr| attr.oid == MS_CERT_PROP_ID_METAEKUS_OID)
+            .flat_map(|attr| attr.values.iter())
+            .map(|value| {
+                value
+                    .decode_into::<OctetStringRef>()
+                    .map(|o| MetaEku::from_der(o.as_bytes()))
+            })
+            .flatten()
+            .flatten_ok()
     }
 }
 

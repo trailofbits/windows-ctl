@@ -18,5 +18,9 @@ fn main() {
 
     for entry in ctl.trusted_subjects.iter().flatten() {
         println!("{:?}", entry.cert_id());
+        println!(
+            "\t EKUs: {:?}",
+            entry.extended_key_usages().collect::<Vec<_>>()
+        )
     }
 }
