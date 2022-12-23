@@ -48,12 +48,19 @@ fn get_ctl(input: PathBuf) -> Result<CertificateTrustList> {
 
     match input.extension().and_then(|s| s.to_str()) {
         Some("der") | Some("stl") => {
-            CertificateTrustList::from_der(file).context("failed to load CTL from PKCS#7 input")
+            CertificateTrustList::from_der(file).context("failed to load CTL from PKCS#7")
         }
         Some("cab") => {
             let mut cabinet = cab::Cabinet::new(file).context("failed to parse cabinet")?;
 
-            unimplemented!()
+            // For the time being, we only bother to look for authroot.stl.
+            // If you have a disallowedcertstl.cab, you should just extract it first.
+            CertificateTrustList::from_der(
+                cabinet
+                    .read_file("authroot.stl")
+                    .context("failed to extract STL from cabinet")?,
+            )
+            .context("failed to load CTL from PKCS#7")
         }
         Some(other) => Err(anyhow!("unexpected file extension: {}", other)),
         None => Err(anyhow!("missing or invalid file extension")),
@@ -63,7 +70,18 @@ fn get_ctl(input: PathBuf) -> Result<CertificateTrustList> {
 fn dump(args: DumpArgs) -> Result<()> {
     let ctl = get_ctl(args.input)?;
 
-    unimplemented!();
+    for entry in ctl.trusted_subjects.iter().flatten() {
+        println!("{:x?}", entry.cert_id());
+        println!(
+            "\t EKUs: {:?}",
+            entry
+                .extended_key_usages()
+                .collect::<Result<Vec<_>, _>>()
+                .context("unexpected EKU format")?
+        )
+    }
+
+    Ok(())
 }
 
 fn fetch(args: FetchArgs) -> Result<()> {
