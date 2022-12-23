@@ -1,0 +1,9 @@
+[package]
+name = "ctltool"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+anyhow = "1.0.68"
+clap = { version = "4.0", features = ["derive"] }
+windows-ctl = { path = "../windows-ctl" }
