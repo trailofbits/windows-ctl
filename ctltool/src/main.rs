@@ -1,6 +1,6 @@
-use std::path::PathBuf;
+use std::{fs::File, path::PathBuf};
 
-use anyhow::{anyhow, Result};
+use anyhow::{anyhow, Context, Result};
 use clap::{Args, Parser, Subcommand};
 use windows_ctl::CertificateTrustList;
 
@@ -44,7 +44,20 @@ struct FetchArgs {
 }
 
 fn get_ctl(input: PathBuf) -> Result<CertificateTrustList> {
-    unimplemented!();
+    let file = File::open(&input)?;
+
+    match input.extension().and_then(|s| s.to_str()) {
+        Some("der") | Some("stl") => {
+            CertificateTrustList::from_der(file).context("failed to load CTL from PKCS#7 input")
+        }
+        Some("cab") => {
+            let mut cabinet = cab::Cabinet::new(file).context("failed to parse cabinet")?;
+
+            unimplemented!()
+        }
+        Some(other) => Err(anyhow!("unexpected file extension: {}", other)),
+        None => Err(anyhow!("missing or invalid file extension")),
+    }
 }
 
 fn dump(args: DumpArgs) -> Result<()> {
