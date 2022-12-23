@@ -59,7 +59,7 @@ pub enum CtlError {
 /// ```asn1
 /// SubjectIdentifier ::= OCTETSTRING
 /// ```
-type SubjectIdentifier = OctetString;
+pub type SubjectIdentifier = OctetString;
 
 /// Completely undocumented by MS.
 ///
@@ -68,7 +68,7 @@ type SubjectIdentifier = OctetString;
 /// ```asn1
 /// MetaEku ::= SEQUENCE OF OBJECT IDENTIFIER
 /// ```
-type MetaEku = Vec<ObjectIdentifier>;
+pub type MetaEku = Vec<ObjectIdentifier>;
 
 /// Represents a single entry in the certificate trust list.
 ///
@@ -88,9 +88,9 @@ pub struct TrustedSubject {
 }
 
 impl TrustedSubject {
-    /// Returns the certificate's ID, as a hex-encoded string.
-    pub fn cert_id(&self) -> String {
-        hex::encode(self.identifier.as_bytes())
+    /// Returns the certificate's ID, as bytes.
+    pub fn cert_id(&self) -> &[u8] {
+        self.identifier.as_bytes()
     }
 
     /// Returns an iterator over all Extended Key Usages (EKUs) listed
@@ -245,4 +245,17 @@ impl CertificateTrustList {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_metaeku() {
+        // SEQUENCE
+        //   OBJECT IDENTIFIER x 3
+        let metaeku = b"\x30\x1E\x06\x08\x2B\x06\x01\x05\x05\x07\x03\x02\x06\x08\x2B\x06\x01\x05\x05\x07\x03\x04\x06\x08\x2B\x06\x01\x05\x05\x07\x03\x01";
+        let res = MetaEku::from_der(metaeku).unwrap();
+
+        assert_eq!(res.len(), 3);
+        assert_eq!(res[0], ObjectIdentifier::new_unwrap("1.3.6.1.5.5.7.3.2"));
+        assert_eq!(res[1], ObjectIdentifier::new_unwrap("1.3.6.1.5.5.7.3.4"));
+        assert_eq!(res[2], ObjectIdentifier::new_unwrap("1.3.6.1.5.5.7.3.1"));
+    }
 }
