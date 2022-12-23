@@ -4,7 +4,6 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-cab = { version = "0.4.1", optional = true }
 der = { git = "https://github.com/smndtrl/formats", branch = "pkcs7", features = ["std", "derive", "oid"] }
 hex = "0.4"
 itertools = "0.10"

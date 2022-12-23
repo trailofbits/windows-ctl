@@ -10,10 +10,8 @@ fn main() {
 
     let ctl = if path.ends_with(".stl") || path.ends_with(".der") {
         CertificateTrustList::from_der(file).expect("failed to load CTL")
-    } else if path.ends_with(".cab") {
-        CertificateTrustList::from_cab(file).expect("failed to load CTL")
     } else {
-        panic!("unexpected input (expected .cab or .stl): {}", path);
+        panic!("unexpected input (expected .der or .stl): {}", path);
     };
 
     for entry in ctl.trusted_subjects.iter().flatten() {

@@ -212,18 +212,6 @@ pub struct CertificateTrustList {
 }
 
 impl CertificateTrustList {
-    /// Load a `CertificateTrustList` from the given source, which is expected to be a
-    /// [Cabinet Format](https://learn.microsoft.com/en-us/windows/win32/msi/cabinet-files)
-    /// encoded stream.
-    #[cfg(feature = "cab")]
-    pub fn from_cab<R: Read + Seek>(source: R) -> Result<Self, CtlError> {
-        let mut cabinet = cab::Cabinet::new(source)?;
-
-        // We expect the actual STL to be at "authroot.stl" inside an STL
-        // cabinet file, and nowhere else.
-        Self::from_der(cabinet.read_file("authroot.stl")?)
-    }
-
     /// Load a `CertificateTrustList` from the given source, which is expected to be a DER-encoded
     /// PKCS#7 stream.
     pub fn from_der<R: Read + Seek>(mut source: R) -> Result<Self, CtlError> {
