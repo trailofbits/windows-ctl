@@ -1,4 +1,8 @@
-use std::{fs::File, io::stdout, path::PathBuf};
+use std::{
+    fs::File,
+    io::{stdout, Write},
+    path::PathBuf,
+};
 
 use anyhow::{anyhow, Context, Result};
 use clap::{Args, Parser, Subcommand};
@@ -84,6 +88,10 @@ fn dump(args: DumpArgs) -> Result<()> {
 
 fn fetch(args: FetchArgs) -> Result<()> {
     let ctl = load_ctl(args.input)?;
+    let mut output = File::options()
+        .write(true)
+        .create_new(true)
+        .open(args.output)?;
 
     println!("{:?}", args.purposes);
 
@@ -96,18 +104,34 @@ fn fetch(args: FetchArgs) -> Result<()> {
 
         eprintln!("attempting to retrieve: {url}");
 
-        let contents = reqwest::blocking::get(url)?.bytes()?;
-        let cert = Certificate::from_der(&contents)?;
+        let resp = reqwest::blocking::get(&url)?;
+        if !resp.status().is_success() {
+            return Err(anyhow!(
+                "cert retrieval failed: {} returned {}",
+                &url,
+                resp.status().as_u16()
+            ));
+        }
 
-        println!(
+        // TODO: verify bytes against cert_id here.
+        let contents = resp.bytes()?;
+        let cert = Certificate::from_der(&contents)?;
+        let tbs_cert = cert.tbs_certificate;
+
+        // https://github.com/RustCrypto/formats/pull/820
+        // writeln!(output, "Serial: {}", tbs_cert.serial_number)?;
+        writeln!(output, "Not Before: {}", tbs_cert.validity.not_before)?;
+        writeln!(output, "Not After: {}", tbs_cert.validity.not_after)?;
+        writeln!(
+            output,
             "{}",
             pem_rfc7468::encode_string(
                 Certificate::PEM_LABEL,
                 pem_rfc7468::LineEnding::LF,
                 &contents,
             )?
-        );
+        )?;
     }
 
-    unimplemented!();
+    Ok(())
 }
