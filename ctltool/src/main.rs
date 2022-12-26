@@ -91,7 +91,8 @@ fn fetch(args: FetchArgs) -> Result<()> {
     let mut output = File::options()
         .write(true)
         .create_new(true)
-        .open(args.output)?;
+        .open(&args.output)
+        .with_context(|| format!("refusing to write to an extant file: {:?}", &args.output))?;
 
     println!("{:?}", args.purposes);
 
@@ -120,6 +121,8 @@ fn fetch(args: FetchArgs) -> Result<()> {
 
         // https://github.com/RustCrypto/formats/pull/820
         // writeln!(output, "Serial: {}", tbs_cert.serial_number)?;
+        writeln!(output, "Issuer: {}", tbs_cert.issuer)?;
+        writeln!(output, "Subject: {}", tbs_cert.subject)?;
         writeln!(output, "Not Before: {}", tbs_cert.validity.not_before)?;
         writeln!(output, "Not After: {}", tbs_cert.validity.not_after)?;
         writeln!(
