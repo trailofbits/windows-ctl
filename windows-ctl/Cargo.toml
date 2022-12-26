@@ -5,9 +5,13 @@ edition = "2021"
 
 [dependencies]
 der = { git = "https://github.com/smndtrl/formats", branch = "pkcs7", features = ["std", "derive", "oid"] }
-hex = "0.4"
+hex = { version = "0.4", optional = true }
 itertools = "0.10"
 thiserror = "1.0"
 pkcs7 = { git = "https://github.com/smndtrl/formats", branch = "pkcs7" }
 spki = { git = "https://github.com/smndtrl/formats", branch = "pkcs7" }
 x509-cert = { git = "https://github.com/smndtrl/formats", branch = "pkcs7" }
+serde = { version = "1.0", optional = true }
+
+[features]
+serde = ["dep:serde", "dep:hex"]

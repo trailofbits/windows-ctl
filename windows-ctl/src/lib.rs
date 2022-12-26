@@ -14,6 +14,9 @@ use der::asn1::{Any, ObjectIdentifier, OctetString, OctetStringRef, Uint};
 use der::{Decode, Enumerated, Sequence};
 use itertools::Itertools;
 use pkcs7::{ContentInfo, ContentType};
+use serde::ser::SerializeStruct;
+#[cfg(feature = "serde")]
+use serde::{ser, Serialize};
 use spki::AlgorithmIdentifier;
 use thiserror::Error;
 use x509_cert::attr::Attributes;
@@ -117,6 +120,27 @@ impl TrustedSubject {
             })
             .flatten()
             .flatten_ok()
+    }
+}
+
+#[cfg(feature = "serde")]
+impl Serialize for TrustedSubject {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        let eku_oids = self
+            .extended_key_usages()
+            .collect::<Result<Vec<_>, _>>()
+            .map_err(|e| ser::Error::custom(format!("EKU collection failed: {}", e)))?
+            .iter()
+            .map(ToString::to_string)
+            .collect::<Vec<_>>();
+
+        let mut s = serializer.serialize_struct("TrustedSubject", 2)?;
+        s.serialize_field("identifier", &hex::encode(self.identifier.as_bytes()))?;
+        s.serialize_field("ekus", &eku_oids)?;
+        s.end()
     }
 }
 
