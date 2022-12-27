@@ -13,3 +13,4 @@ serde_json = "1.0"
 windows-ctl = { path = "../windows-ctl", features = ["serde"]}
 x509-cert = { git = "https://github.com/smndtrl/formats", branch = "pkcs7", features = ["pem"]}
 pem-rfc7468 = { git = "https://github.com/smndtrl/formats", branch = "pkcs7", features = ["std"]}
+indicatif = "0.17"

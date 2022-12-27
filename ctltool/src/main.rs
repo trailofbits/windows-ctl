@@ -6,6 +6,7 @@ use std::{
 
 use anyhow::{anyhow, Context, Result};
 use clap::{Args, Parser, Subcommand};
+use indicatif::ProgressIterator;
 use pem_rfc7468::LineEnding;
 use windows_ctl::CertificateTrustList;
 use x509_cert::{
@@ -99,7 +100,9 @@ fn fetch(args: FetchArgs) -> Result<()> {
 
     println!("{:?}", args.purposes);
 
-    for entry in ctl.trusted_subjects.iter().flatten().take(1) {
+    let entries = ctl.trusted_subjects.iter().flatten().collect::<Vec<_>>();
+
+    for entry in entries.iter().progress() {
         let id = hex::encode(entry.cert_id());
         let url = format!(
             "http://www.download.windowsupdate.com/msdownload/update/v3/static/trustedr/en/{}.crt",
@@ -119,7 +122,7 @@ fn fetch(args: FetchArgs) -> Result<()> {
 
         // TODO: verify bytes against cert_id here.
         let contents = resp.bytes()?;
-        let cert = Certificate::from_der(&contents)?;
+        let cert = Certificate::from_der(&contents).context("failed to load X.509")?;
         let tbs_cert = &cert.tbs_certificate;
 
         // https://github.com/RustCrypto/formats/pull/820
