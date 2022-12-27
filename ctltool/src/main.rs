@@ -6,9 +6,12 @@ use std::{
 
 use anyhow::{anyhow, Context, Result};
 use clap::{Args, Parser, Subcommand};
-use pem_rfc7468::PemLabel;
+use pem_rfc7468::LineEnding;
 use windows_ctl::CertificateTrustList;
-use x509_cert::{der::Decode, Certificate};
+use x509_cert::{
+    der::{Decode, EncodePem},
+    Certificate,
+};
 
 fn main() -> Result<()> {
     let args = Cli::parse();
@@ -117,7 +120,7 @@ fn fetch(args: FetchArgs) -> Result<()> {
         // TODO: verify bytes against cert_id here.
         let contents = resp.bytes()?;
         let cert = Certificate::from_der(&contents)?;
-        let tbs_cert = cert.tbs_certificate;
+        let tbs_cert = &cert.tbs_certificate;
 
         // https://github.com/RustCrypto/formats/pull/820
         // writeln!(output, "Serial: {}", tbs_cert.serial_number)?;
@@ -125,15 +128,7 @@ fn fetch(args: FetchArgs) -> Result<()> {
         writeln!(output, "Subject: {}", tbs_cert.subject)?;
         writeln!(output, "Not Before: {}", tbs_cert.validity.not_before)?;
         writeln!(output, "Not After: {}", tbs_cert.validity.not_after)?;
-        writeln!(
-            output,
-            "{}",
-            pem_rfc7468::encode_string(
-                Certificate::PEM_LABEL,
-                pem_rfc7468::LineEnding::LF,
-                &contents,
-            )?
-        )?;
+        writeln!(output, "{}", cert.to_pem(LineEnding::LF)?)?;
     }
 
     Ok(())
