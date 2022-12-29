@@ -126,7 +126,7 @@ fn fetch(args: FetchArgs) -> Result<()> {
         let tbs_cert = &cert.tbs_certificate;
 
         // https://github.com/RustCrypto/formats/pull/820
-        // writeln!(output, "Serial: {}", tbs_cert.serial_number)?;
+        writeln!(output, "Serial: {}", tbs_cert.serial_number)?;
         writeln!(output, "Issuer: {}", tbs_cert.issuer)?;
         writeln!(output, "Subject: {}", tbs_cert.subject)?;
         writeln!(output, "Not Before: {}", tbs_cert.validity.not_before)?;
