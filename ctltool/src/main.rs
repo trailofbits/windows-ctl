@@ -125,7 +125,6 @@ fn fetch(args: FetchArgs) -> Result<()> {
         let cert = Certificate::from_der(&contents).context("failed to load X.509")?;
         let tbs_cert = &cert.tbs_certificate;
 
-        // https://github.com/RustCrypto/formats/pull/820
         writeln!(output, "Serial: {}", tbs_cert.serial_number)?;
         writeln!(output, "Issuer: {}", tbs_cert.issuer)?;
         writeln!(output, "Subject: {}", tbs_cert.subject)?;
