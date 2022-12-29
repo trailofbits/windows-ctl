@@ -11,11 +11,6 @@ hex = "0.4"
 reqwest = { version = "0.11", features = ["blocking"] }
 serde_json = "1.0"
 windows-ctl = { path = "../windows-ctl", features = ["serde"]}
-<<<<<<< HEAD
-x509-cert = { git = "https://github.com/smndtrl/formats", branch = "pkcs7", features = ["pem"]}
-pem-rfc7468 = { git = "https://github.com/smndtrl/formats", branch = "pkcs7", features = ["std"]}
 indicatif = "0.17"
-=======
 x509-cert = { git = "https://github.com/RustCrypto/formats", branch = "master", features = ["pem"]}
 pem-rfc7468 = { git = "https://github.com/RustCrypto/formats", branch = "master", features = ["std"]}
->>>>>>> 14195fe (ctltool, windows-ctl: move off of fork)
