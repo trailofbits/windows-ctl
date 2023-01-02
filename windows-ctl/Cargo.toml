@@ -4,13 +4,13 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-der = { git = "https://github.com/RustCrypto/formats", branch = "master", features = ["std", "derive", "oid"] }
+der = { git = "https://github.com/woodruffw-forks/formats", branch = "ww/fix-int", features = ["std", "derive", "oid"] }
 hex = { version = "0.4", optional = true }
 itertools = "0.10"
 thiserror = "1.0"
-pkcs7 = { git = "https://github.com/RustCrypto/formats", branch = "master" }
-spki = { git = "https://github.com/RustCrypto/formats", branch = "master" }
-x509-cert = { git = "https://github.com/RustCrypto/formats", branch = "master" }
+pkcs7 = { git = "https://github.com/woodruffw-forks/formats", branch = "ww/fix-int" }
+spki = { git = "https://github.com/woodruffw-forks/formats", branch = "ww/fix-int" }
+x509-cert = { git = "https://github.com/woodruffw-forks/formats", branch = "ww/fix-int" }
 serde = { version = "1.0", optional = true }
 
 [features]

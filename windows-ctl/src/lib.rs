@@ -115,7 +115,7 @@ impl TrustedSubject {
             .flat_map(|attr| attr.values.iter())
             .map(|value| {
                 value
-                    .decode_into::<OctetStringRef>()
+                    .decode_as::<OctetStringRef>()
                     .map(|o| MetaEku::from_der(o.as_bytes()))
             })
             .flatten()
@@ -262,7 +262,7 @@ impl CertificateTrustList {
             return Err(CtlError::MissingSignedDataContent);
         };
 
-        Ok(content.decode_into()?)
+        Ok(content.decode_as()?)
     }
 }
 
