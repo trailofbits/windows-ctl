@@ -6,7 +6,7 @@ use std::{
 
 use anyhow::{anyhow, Context, Result};
 use clap::{Args, Parser, Subcommand};
-use indicatif::ProgressIterator;
+use indicatif::{ProgressBar, ProgressIterator, ProgressStyle};
 use pem_rfc7468::LineEnding;
 use windows_ctl::CertificateTrustList;
 use x509_cert::{
@@ -102,14 +102,17 @@ fn fetch(args: FetchArgs) -> Result<()> {
 
     let entries = ctl.trusted_subjects.iter().flatten().collect::<Vec<_>>();
 
-    for entry in entries.iter().progress() {
+    let progress = ProgressBar::new(entries.len() as u64).with_style(ProgressStyle::with_template(
+        "[{elapsed_precise}] {wide_bar:.cyan/blue} {pos:>7}/{len:7} {msg}",
+    )?);
+    for entry in entries.iter().progress_with(progress.clone()) {
         let id = hex::encode(entry.cert_id());
         let url = format!(
             "http://www.download.windowsupdate.com/msdownload/update/v3/static/trustedr/en/{}.crt",
             id
         );
 
-        eprintln!("attempting to retrieve: {url}");
+        progress.set_message(id);
 
         let resp = reqwest::blocking::get(&url)?;
         if !resp.status().is_success() {
