@@ -108,8 +108,7 @@ fn fetch(args: FetchArgs) -> Result<()> {
     for entry in entries.iter().progress_with(progress.clone()) {
         let id = hex::encode(entry.cert_id());
         let url = format!(
-            "http://www.download.windowsupdate.com/msdownload/update/v3/static/trustedr/en/{}.crt",
-            id
+            "http://www.download.windowsupdate.com/msdownload/update/v3/static/trustedr/en/{id}.crt"
         );
 
         progress.set_message(id);

@@ -113,12 +113,11 @@ impl TrustedSubject {
             .flat_map(|attrs| attrs.iter())
             .filter(|attr| attr.oid == MS_CERT_PROP_ID_METAEKUS_OID)
             .flat_map(|attr| attr.values.iter())
-            .map(|value| {
+            .flat_map(|value| {
                 value
                     .decode_as::<OctetStringRef>()
                     .map(|o| MetaEku::from_der(o.as_bytes()))
             })
-            .flatten()
             .flatten_ok()
     }
 }
@@ -132,7 +131,7 @@ impl Serialize for TrustedSubject {
         let eku_oids = self
             .extended_key_usages()
             .collect::<Result<Vec<_>, _>>()
-            .map_err(|e| ser::Error::custom(format!("EKU collection failed: {}", e)))?
+            .map_err(|e| ser::Error::custom(format!("EKU collection failed: {e}")))?
             .iter()
             .map(ToString::to_string)
             .collect::<Vec<_>>();
