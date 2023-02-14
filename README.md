@@ -1,5 +1,7 @@
 # windows-ctl
 
+[![Tests](https://github.com/trailofbits/windows-ctl/actions/workflows/tests.yml/badge.svg)](https://github.com/trailofbits/windows-ctl/actions/workflows/tests.yml)
+
 Rust libraries and tools for interacting with Windows Certificate Trust Lists.
 
 ## Crates
