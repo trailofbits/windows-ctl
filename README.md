@@ -1,5 +1,4 @@
-windows-ctl
-===========
+# windows-ctl
 
 Rust libraries and tools for interacting with Windows Certificate Trust Lists.
 
