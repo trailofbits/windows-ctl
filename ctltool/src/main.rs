@@ -1,4 +1,5 @@
 use std::{
+    collections::HashSet,
     fs::File,
     io::{stdout, Write},
     path::PathBuf,
@@ -11,6 +12,7 @@ use pem_rfc7468::LineEnding;
 use windows_ctl::CertificateTrustList;
 use x509_cert::{
     der::{Decode, EncodePem},
+    spki::ObjectIdentifier,
     Certificate,
 };
 
@@ -98,7 +100,11 @@ fn fetch(args: FetchArgs) -> Result<()> {
         .open(&args.output)
         .with_context(|| format!("refusing to write to an extant file: {:?}", &args.output))?;
 
-    println!("{:?}", args.purposes);
+    let purposes: HashSet<_> = args
+        .purposes
+        .iter()
+        .map(|p| ObjectIdentifier::new(&p))
+        .collect::<Result<HashSet<_>, _>>()?;
 
     let entries = ctl.trusted_subjects.iter().flatten().collect::<Vec<_>>();
 
@@ -106,6 +112,16 @@ fn fetch(args: FetchArgs) -> Result<()> {
         "[{elapsed_precise}] {wide_bar:.cyan/blue} {pos:>7}/{len:7} {msg}",
     )?);
     for entry in entries.iter().progress_with(progress.clone()) {
+        let ekus = entry
+            .extended_key_usages()
+            .collect::<Result<HashSet<_>, _>>()?;
+
+        // If the user supplied purposes to filter by and any of them intersect with
+        // the cert's EKUs, skip it.
+        if !purposes.is_empty() && !ekus.intersection(&purposes).collect::<Vec<_>>().is_empty() {
+            continue;
+        }
+
         let id = hex::encode(entry.cert_id());
         let url = format!(
             "http://www.download.windowsupdate.com/msdownload/update/v3/static/trustedr/en/{id}.crt"
