@@ -103,7 +103,7 @@ fn fetch(args: FetchArgs) -> Result<()> {
     let purposes: HashSet<_> = args
         .purposes
         .iter()
-        .map(|p| ObjectIdentifier::new(&p))
+        .map(|p| ObjectIdentifier::new(p))
         .collect::<Result<HashSet<_>, _>>()?;
 
     let entries = ctl.trusted_subjects.iter().flatten().collect::<Vec<_>>();
