@@ -4,3 +4,8 @@ members = [
   "ctltool",
   "windows-ctl",
 ]
+
+[workspace.metadata.release]
+pre-release-commit-message = "{{crate_name}}: {{version}}"
+publish = false # handled by GitHub Actions
+push = true
