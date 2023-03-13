@@ -15,4 +15,8 @@ jobs:
       - name: publish to crates.io
         run: |
           echo ${{ secrets.CRATES_IO_TOKEN }} | cargo login
-          cargo publish
+
+          # Annoying.
+          tag="${GITHUB_REF#refs/tags/}"
+          package_being_published="${tag%-v*}"
+          cd "${package_being_published}" && cargo publish
