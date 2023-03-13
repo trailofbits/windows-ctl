@@ -1,0 +1,4 @@
+pre-release-commit-message = "{{crate_name}}: {{version}}"
+dev-version = false
+publish = false # handled by GitHub Actions
+push = true
