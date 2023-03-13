@@ -14,6 +14,7 @@ use der::asn1::{Any, ObjectIdentifier, OctetString, OctetStringRef, Uint};
 use der::{Decode, Enumerated, Sequence};
 use itertools::Itertools;
 use pkcs7::{ContentInfo, ContentType};
+#[cfg(feature = "serde")]
 use serde::ser::SerializeStruct;
 #[cfg(feature = "serde")]
 use serde::{ser, Serialize};
