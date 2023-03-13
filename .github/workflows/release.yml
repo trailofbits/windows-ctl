@@ -1,0 +1,22 @@
+on:
+  release:
+    types:
+      - published
+
+name: release
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    environment: release
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: publish to crates.io
+        run: |
+          echo ${{ secrets.CRATES_IO_TOKEN }} | cargo login
+
+          # Annoying.
+          tag="${GITHUB_REF#refs/tags/}"
+          package_being_published="${tag%-v*}"
+          cd "${package_being_published}" && cargo publish
