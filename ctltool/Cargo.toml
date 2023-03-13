@@ -2,6 +2,7 @@
 name = "ctltool"
 description = "A command line utility for inspecting and interacting with Windows CTLs"
 repository = "https://github.com/trailofbits/windows-ctl"
+readme = "../README.md"
 license = "Apache-2.0"
 version = "0.1.0"
 edition = "2021"
