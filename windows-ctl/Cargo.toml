@@ -1,6 +1,7 @@
 [package]
 name = "windows-ctl"
 description = "A crate for parsing Windows Certificate Trust Lists"
+repository = "https://github.com/trailofbits/windows-ctl"
 license = "Apache-2.0"
 version = "0.1.0"
 edition = "2021"
