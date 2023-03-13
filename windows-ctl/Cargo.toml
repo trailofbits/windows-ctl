@@ -5,13 +5,13 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-der = { git = "https://github.com/RustCrypto/formats", branch = "master", features = ["std", "derive", "oid"] }
+der = { version = "0.7.1", features = ["std", "derive", "oid"] }
 hex = { version = "0.4", optional = true }
 itertools = "0.10"
 thiserror = "1.0"
-pkcs7 = { git = "https://github.com/RustCrypto/formats", branch = "master" }
-spki = { git = "https://github.com/RustCrypto/formats", branch = "master" }
-x509-cert = { git = "https://github.com/RustCrypto/formats", branch = "master" }
+pkcs7 = { version = "0.4.0-pre.1" }
+spki = { version = "0.7.0" }
+x509-cert = { version = "0.2.0-pre.0" }
 serde = { version = "1.0", optional = true }
 
 [features]

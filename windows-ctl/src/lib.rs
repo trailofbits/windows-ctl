@@ -245,8 +245,7 @@ impl CertificateTrustList {
 
         let body = ContentInfo::from_der(&der)?;
         let signed_data = match body {
-            ContentInfo::SignedData(Some(signed_data)) => signed_data,
-            ContentInfo::SignedData(_) => return Err(CtlError::MissingSignedData),
+            ContentInfo::SignedData(signed_data) => signed_data,
             _ => return Err(CtlError::ContentType(body.content_type())),
         };
 
