@@ -9,12 +9,12 @@ on:
 jobs:
   lint-source:
     name: Lint Rust
-    uses: trailofbits/.github/.github/workflows/lint.yml@v0.0.4
+    uses: trailofbits/.github/.github/workflows/lint.yml@v0.1.3
     with:
       language: rust
 
   lint-md:
     name: Lint Markdown
-    uses: trailofbits/.github/.github/workflows/lint.yml@v0.0.4
+    uses: trailofbits/.github/.github/workflows/lint.yml@v0.1.3
     with:
       language: markdown
