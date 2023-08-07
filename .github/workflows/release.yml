@@ -1,7 +1,7 @@
 on:
   push:
     tags:
-      - 'window-ctl-v*'
+      - 'windows-ctl-v*'
       - 'ctltool-v*'
 
 name: release
