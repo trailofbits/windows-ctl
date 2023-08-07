@@ -1,22 +1,33 @@
 on:
-  release:
-    types:
-      - published
+  push:
+    tags:
+      - 'v*'
 
 name: release
 
 jobs:
-  release:
+  create-release:
+    name: create GitHub release
     runs-on: ubuntu-latest
-    environment: release
+    permissions:
+      contents: write
+
+    steps:
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        with:
+          prerelease: ${{ contains(github.ref, 'pre') || contains(github.ref, 'rc') }}
+
+  publish:
+    needs:
+      - create-release
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
 
       - name: publish to crates.io
         run: |
           echo ${{ secrets.CRATES_IO_TOKEN }} | cargo login
-
-          # Annoying.
           tag="${GITHUB_REF#refs/tags/}"
           package_being_published="${tag%-v*}"
           cd "${package_being_published}" && cargo publish
