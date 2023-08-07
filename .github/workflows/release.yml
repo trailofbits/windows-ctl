@@ -23,12 +23,14 @@ jobs:
     needs:
       - create-release
     runs-on: ubuntu-latest
+    environment: release
     steps:
       - uses: actions/checkout@v3
 
       - name: publish to crates.io
+        env:
+          CARGO_REGISTRY_TOKEN: "${{ secrets.CRATES_IO_TOKEN }}"
         run: |
-          echo ${{ secrets.CRATES_IO_TOKEN }} | cargo login
           tag="${GITHUB_REF#refs/tags/}"
           package_being_published="${tag%-v*}"
           cd "${package_being_published}" && cargo publish
