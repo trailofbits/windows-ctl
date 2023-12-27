@@ -14,3 +14,9 @@ jobs:
 
       - name: test
         run: cargo test
+
+      - name: test ctltool
+        run: |
+          curl http://www.download.windowsupdate.com/msdownload/update/v3/static/trustedr/en/authrootstl.cab > authrootstl.cab
+          cargo build
+          ./target/debug/ctltool dump ./authrootstl.cab
