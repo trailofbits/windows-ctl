@@ -9,7 +9,7 @@ edition = "2021"
 
 [dependencies]
 anyhow = "1.0"
-cab = "0.4"
+cab = "0.5"
 clap = { version = "4.0", features = ["derive"] }
 hex = "0.4"
 reqwest = { version = "0.11", features = ["blocking"] }
