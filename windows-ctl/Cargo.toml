@@ -11,7 +11,7 @@ edition = "2021"
 der = { version = "0.7.1", features = ["std", "derive", "oid"] }
 hex = { version = "0.4", optional = true }
 itertools = "0.13"
-thiserror = "1.0"
+thiserror = "2.0"
 pkcs7 = { version = "0.4.0-pre.1" }
 spki = { version = "0.7.0" }
 x509-cert = { version = "0.2.0-pre.0" }
