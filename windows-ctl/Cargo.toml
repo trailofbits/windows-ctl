@@ -13,7 +13,7 @@ hex = { version = "0.4", optional = true }
 itertools = "0.14"
 thiserror = "2.0"
 pkcs7 = { version = "0.4.0-pre.1" }
-spki = { version = "0.7.0" }
+spki = { version = "0.8.0" }
 x509-cert = { version = "0.2.0-pre.0" }
 serde = { version = "1.0", optional = true }
 
